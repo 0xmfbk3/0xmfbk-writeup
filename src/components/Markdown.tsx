@@ -80,7 +80,7 @@ function CodeBlock({ children, className }: { children: React.ReactNode; classNa
 // ---------- Markdown component ----------
 export function Markdown({ content }: { content: string }) {
   return (
-    <div className="prose-md">
+    <div className="prose-md" data-color-mode="dark" dir="auto">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[[rehypeHighlight, { detect: true, ignoreMissing: true }]]}

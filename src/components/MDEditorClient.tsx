@@ -1,3 +1,4 @@
+// MDEditorClient.tsx
 import { useEffect, useState, type ComponentType } from "react";
 
 type MDEditorProps = {
@@ -6,7 +7,6 @@ type MDEditorProps = {
   height?: number;
 };
 
-// @uiw/react-md-editor touches `window` on import — load only on the client.
 export function MDEditorClient({ value, onChange, height = 560 }: MDEditorProps) {
   const [Editor, setEditor] = useState<ComponentType<any> | null>(null);
 
@@ -16,7 +16,9 @@ export function MDEditorClient({ value, onChange, height = 560 }: MDEditorProps)
       const mod = await import("@uiw/react-md-editor");
       if (mounted) setEditor(() => mod.default);
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (!Editor) {
@@ -31,7 +33,7 @@ export function MDEditorClient({ value, onChange, height = 560 }: MDEditorProps)
   }
 
   return (
-    <div data-color-mode="dark">
+    <div data-color-mode="dark" dir="auto">
       <Editor
         value={value}
         onChange={(v: string | undefined) => onChange(v ?? "")}

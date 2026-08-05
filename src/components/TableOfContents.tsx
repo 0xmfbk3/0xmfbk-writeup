@@ -31,7 +31,6 @@ export function TableOfContents({ content }: { content: string }) {
     if (toc.length === 0) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the first heading that is intersecting (or the last one above the viewport)
         for (const entry of entries) {
           if (entry.isIntersecting) {
             setActiveId(entry.target.id);
@@ -53,16 +52,16 @@ export function TableOfContents({ content }: { content: string }) {
   if (toc.length === 0) return null;
 
   return (
-    <nav className="space-y-1 font-mono text-xs">
+    <nav dir="rtl" className="space-y-1 font-mono text-xs text-right">
       <h4 className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground/70">
-        On this page
+        محتويات المقال
       </h4>
       <ul className="space-y-1">
         {toc.map((item) => (
           <li key={item.id}>
             <a
               href={`#${item.id}`}
-              className={`block rounded px-2 py-1 transition ${item.level === 3 ? "pl-4" : ""} ${
+              className={`block rounded px-2 py-1 transition ${item.level === 3 ? "pr-4" : ""} ${
                 activeId === item.id
                   ? "bg-primary/10 text-primary font-medium"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/30"

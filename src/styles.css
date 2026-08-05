@@ -471,3 +471,128 @@
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--neon) 30%, transparent) transparent;
 }
+
+/* ================================================================
+   RTL SUPPORT – @uiw/react-md-editor + prose viewer
+   ================================================================ */
+
+/*
+   The container has dir="auto". We force the editor’s
+   textarea and pre to inherit that direction so that
+   the cursor and highlighted text always stay aligned.
+*/
+.w-md-editor-text {
+  direction: inherit !important;
+}
+
+.w-md-editor-text-input,
+.w-md-editor-text-pre {
+  direction: inherit !important;
+  text-align: inherit !important;
+}
+
+.w-md-editor-text-pre > code {
+  direction: inherit !important;
+  text-align: inherit !important;
+  /* Prevent code blocks inside the editor from overriding */
+}
+
+/* Toolbar stays LTR */
+.w-md-editor-toolbar {
+  direction: ltr !important;
+}
+
+/* ===== Preview (live & published) ===== */
+/* Auto‑detect paragraph direction: Arabic → RTL, English → LTR */
+.w-md-editor-preview,
+.prose-md {
+  direction: auto !important;
+  unicode-bidi: plaintext !important;
+}
+
+/* ===== Code blocks & inline code: ALWAYS LTR ===== */
+/* Inside the preview */
+.w-md-editor-preview pre,
+.w-md-editor-preview pre code,
+.prose-md pre,
+.prose-md pre code {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+  text-align: left !important;
+}
+
+.w-md-editor-preview :not(pre) > code,
+.prose-md :not(pre) > code {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+  text-align: left !important;
+}
+
+/* Also handle any code-block wrapper (your custom CodeBlock component) */
+.prose-md .group.relative,
+.w-md-editor-preview .group.relative {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
+}
+
+/* ================================================================
+   FULL RTL SUPPORT – @uiw/react-md-editor + markdown preview
+   ================================================================ */
+
+/* ---------- Editor text input ---------- */
+.w-md-editor-text {
+  direction: rtl !important;
+}
+
+.w-md-editor-text-input,
+.w-md-editor-text-pre {
+  direction: rtl !important;
+  text-align: right !important;
+  unicode-bidi: plaintext !important;
+}
+
+/* Ensure the textarea and the overlaid highlighted pre stay aligned */
+.w-md-editor-text-pre > code {
+  direction: rtl !important;
+  text-align: right !important;
+  unicode-bidi: plaintext !important;
+}
+
+/* ---------- Toolbar stays LTR ---------- */
+.w-md-editor-toolbar {
+  direction: ltr !important;
+}
+
+/* ---------- Preview pane (live & static) ---------- */
+.w-md-editor-preview,
+.wmde-markdown {
+  direction: rtl !important;
+  text-align: right !important;
+  unicode-bidi: plaintext !important;
+}
+
+/* ---------- Protect code blocks (ALWAYS LTR) ---------- */
+.wmde-markdown pre,
+.wmde-markdown pre code,
+.w-md-editor-preview pre,
+.w-md-editor-preview pre code,
+.w-md-editor-text-pre .token {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: normal !important; /* or isolate – normal is sufficient for monospace */
+}
+
+/* Inline code inside preview: stay LTR */
+.wmde-markdown :not(pre) > code,
+.w-md-editor-preview :not(pre) > code {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: isolate !important;
+}
+
+/* ---------- List padding fix ---------- */
+.wmde-markdown ul,
+.wmde-markdown ol {
+  padding-right: 2em !important;
+  padding-left: 0 !important;
+}
