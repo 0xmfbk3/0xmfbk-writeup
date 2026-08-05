@@ -1,6 +1,6 @@
 // src/components/TableOfContents.tsx
 import { useEffect, useState, useMemo } from "react";
-import { ChevronDown, ChevronLeft } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 type TocItem = {
   id: string;
@@ -16,7 +16,6 @@ function slugifyHeading(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-// تحويل العناوين المسطحة إلى هيكل شجري (Tree) لترتيب h3 تحت h2
 function extractHierarchicalToc(markdown: string): TocItem[] {
   const headingRegex = /^(#{2,3})\s+(.+)$/gm;
   const flatItems: { id: string; text: string; level: 2 | 3 }[] = [];
@@ -42,7 +41,6 @@ function extractHierarchicalToc(markdown: string): TocItem[] {
       if (currentH2) {
         currentH2.children.push({ ...item, children: [] });
       } else {
-        // Fallback لو وُجد h3 بدون h2 قبله
         tree.push({ ...item, children: [] });
       }
     }
@@ -51,13 +49,23 @@ function extractHierarchicalToc(markdown: string): TocItem[] {
   return tree;
 }
 
+// دالة ذكية للتعرف على لغة المحتوى (عربي أو إنجليزي)
+function detectLanguage(markdown: string): "ar" | "en" {
+  const arabicMatches = markdown.match(/[\u0600-\u06FF]/g);
+  const latinMatches = markdown.match(/[a-zA-Z]/g);
+  const arabicCount = arabicMatches ? arabicMatches.length : 0;
+  const latinCount = latinMatches ? latinMatches.length : 0;
+  return arabicCount > latinCount ? "ar" : "en";
+}
+
 export function TableOfContents({ content }: { content: string }) {
   const toc = useMemo(() => extractHierarchicalToc(content), [content]);
+  const lang = useMemo(() => detectLanguage(content), [content]);
+  const isArabic = lang === "ar";
+
   const [activeId, setActiveId] = useState<string>("");
-  // حالة تخزين الأقسام المفتوحة يدوياً أو تلقائياً
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
-  // تتبع العنوان النشط أثناء التمرير
   useEffect(() => {
     if (toc.length === 0) return;
 
@@ -68,7 +76,6 @@ export function TableOfContents({ content }: { content: string }) {
             const id = entry.target.id;
             setActiveId(id);
 
-            // البحث التلقائي عن الـ H2 الأب وفتحه تلقائياً إذا كان الـ ID يتبع له
             toc.forEach((h2) => {
               const isChild = h2.children.some((h3) => h3.id === id);
               if (h2.id === id || isChild) {
@@ -81,7 +88,6 @@ export function TableOfContents({ content }: { content: string }) {
       { rootMargin: "-80px 0px -50% 0px", threshold: 0.1 },
     );
 
-    // مراقبة كل العناوين الرئيسية والفرعية
     toc.forEach((h2) => {
       const el = document.getElementById(h2.id);
       if (el) observer.observe(el);
@@ -102,22 +108,32 @@ export function TableOfContents({ content }: { content: string }) {
   };
 
   return (
-    <nav dir="rtl" className="space-y-2 font-mono text-xs text-right">
-      <div className="flex items-center justify-between pb-2 border-b border-border/40 mb-3 px-1">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+    <nav
+      dir={isArabic ? "rtl" : "ltr"}
+      className={`space-y-2 font-mono text-xs ${isArabic ? "text-right" : "text-left"}`}
+    >
+      {/* رأس الفهرس يتكيف مع اللغة */}
+      <div
+        className={`flex items-center justify-between pb-2 border-b border-border/40 mb-3 px-1 ${isArabic ? "" : "flex-row-reverse"}`}
+      >
+        <span className="text-[10px] text-muted-foreground/60">
+          {toc.length} {isArabic ? "أقسام" : "sections"}
+        </span>
+        <div className={`flex items-center gap-2 ${isArabic ? "" : "flex-row-reverse"}`}>
           <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground/80 font-bold">
-            محتويات المقال
+            {isArabic ? "محتويات المقال" : "Table of Contents"}
           </h4>
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
         </div>
-        <span className="text-[10px] text-muted-foreground/60">{toc.length} أقسام</span>
       </div>
 
-      <ul className="space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto toc-scrollbar pl-1">
+      <ul
+        className={`space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto toc-scrollbar ${isArabic ? "pl-1" : "pr-1"}`}
+      >
         {toc.map((h2) => {
           const isH2Active = activeId === h2.id;
           const hasChildren = h2.children.length > 0;
-          const isOpen = openSections[h2.id] ?? isH2Active; // مفتوح إذا كان نشطاً أو افتراضياً
+          const isOpen = openSections[h2.id] ?? isH2Active;
 
           return (
             <li key={h2.id} className="space-y-1">
@@ -126,11 +142,29 @@ export function TableOfContents({ content }: { content: string }) {
                   isH2Active
                     ? "bg-primary/10 text-primary font-semibold shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                }`}
+                } ${isArabic ? "" : "flex-row-reverse"}`}
               >
+                {/* زر التوسيع يتكيف مع اتجاه اللغة */}
+                {hasChildren && (
+                  <button
+                    type="button"
+                    onClick={(e) => toggleSection(h2.id, e)}
+                    className="p-1 text-muted-foreground/70 hover:text-foreground transition-transform duration-200"
+                    aria-label="Toggle section"
+                  >
+                    {isOpen ? (
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    ) : isArabic ? (
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                )}
+
                 <a
                   href={`#${h2.id}`}
-                  className="flex-1 truncate text-xs"
+                  className={`flex-1 truncate text-xs ${isArabic ? "text-right" : "text-left"}`}
                   onClick={(e) => {
                     e.preventDefault();
                     document
@@ -142,31 +176,21 @@ export function TableOfContents({ content }: { content: string }) {
                   {h2.text}
                 </a>
 
-                {/* مؤشر نشط سايبراني */}
+                {/* المؤشر النشط يظهر على اليمين بالعربي وعلى اليسار بالإنجليزي */}
                 {isH2Active && (
-                  <span className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-3.5 bg-primary rounded-l-full shadow-[0_0_8px_var(--primary)]"></span>
-                )}
-
-                {/* زر الطي والتوسيع (Collapse / Expand) للعناوين التي تمتلك فروعاً */}
-                {hasChildren && (
-                  <button
-                    type="button"
-                    onClick={(e) => toggleSection(h2.id, e)}
-                    className="p-1 text-muted-foreground/70 hover:text-foreground transition-transform duration-200"
-                    aria-label="Toggle section"
-                  >
-                    {isOpen ? (
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    ) : (
-                      <ChevronLeft className="w-3.5 h-3.5" />
-                    )}
-                  </button>
+                  <span
+                    className={`absolute top-1/2 -translate-y-1/2 w-1 h-3.5 bg-primary shadow-[0_0_8px_var(--primary)] ${
+                      isArabic ? "right-0 rounded-l-full" : "left-0 rounded-r-full"
+                    }`}
+                  ></span>
                 )}
               </div>
 
-              {/* العناوين الفرعية (h3) تظهر فقط إذا كان القسم مفتوحاً */}
+              {/* العناوين الفرعية (h3) مع محاذاة الحدود تلقائياً */}
               {hasChildren && isOpen && (
-                <ul className="space-y-1 pr-3 border-r border-border/40 my-1">
+                <ul
+                  className={`space-y-1 my-1 ${isArabic ? "pr-3 border-r border-border/40" : "pl-3 border-l border-border/40"}`}
+                >
                   {h2.children.map((h3) => {
                     const isH3Active = activeId === h3.id;
                     return (
@@ -177,7 +201,7 @@ export function TableOfContents({ content }: { content: string }) {
                             isH3Active
                               ? "bg-primary/10 text-primary font-medium"
                               : "text-muted-foreground/80 hover:text-foreground hover:bg-muted/30"
-                          }`}
+                          } ${isArabic ? "text-right" : "text-left"}`}
                           onClick={(e) => {
                             e.preventDefault();
                             document
@@ -187,7 +211,11 @@ export function TableOfContents({ content }: { content: string }) {
                           }}
                         >
                           {isH3Active && (
-                            <span className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-3 bg-primary rounded-l-full"></span>
+                            <span
+                              className={`absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-primary ${
+                                isArabic ? "right-0 rounded-l-full" : "left-0 rounded-r-full"
+                              }`}
+                            ></span>
                           )}
                           {h3.text}
                         </a>
