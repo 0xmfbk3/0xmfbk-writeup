@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/9x7ktq3f8b2a/panel/")({
-  head: () => ({ meta: [{ title: "Dashboard — 0xmfbk admin" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Dashboard - 0xmfbk admin" }, { name: "robots", content: "noindex" }] }),
   component: AdminDashboard,
 });
 
