@@ -427,31 +427,40 @@
   background-color: #67060c;
 }
 
-/* MD Editor overrides */
+/* ================================================================
+   1. MD Editor Base Theme (Cyber-themed)
+   ================================================================ */
 .w-md-editor,
 .w-md-editor-text,
 .w-md-editor-preview {
   background: var(--card) !important;
   color: var(--foreground) !important;
 }
+
 .w-md-editor {
   border: 1px solid var(--border) !important;
   border-radius: 8px;
 }
+
 .w-md-editor-toolbar {
   background: var(--muted) !important;
   border-bottom: 1px solid var(--border) !important;
+  direction: ltr !important; /* الحفاظ على شريط الأدوات من اليسار لليمين لكي لا تنعكس الأيقونات */
 }
+
 .w-md-editor-toolbar button svg {
   color: var(--foreground);
 }
+
 .w-md-editor-text-input,
 .w-md-editor-text-pre > code {
   color: var(--foreground) !important;
   font-family: var(--font-mono) !important;
 }
 
-/* Cyber-themed thin scrollbar for the ToC */
+/* ================================================================
+   2. Cyber-themed thin scrollbar for the ToC
+   ================================================================ */
 .toc-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -473,126 +482,82 @@
 }
 
 /* ================================================================
-   RTL SUPPORT – @uiw/react-md-editor + prose viewer
+   3. SMART RTL / LTR TOGGLE FIX (No Ghosting Layer Sync)
    ================================================================ */
 
-/*
-   The container has dir="auto". We force the editor’s
-   textarea and pre to inherit that direction so that
-   the cursor and highlighted text always stay aligned.
-*/
-.w-md-editor-text {
-  direction: inherit !important;
+/* --- A. وضع اللغة العربية (RTL Mode) --- */
+.editor-rtl .w-md-editor-text-input,
+.editor-rtl .w-md-editor-text-pre {
+  direction: rtl !important;
+  text-align: right !important;
+  unicode-bidi: plaintext !important;
+  font-family: var(--font-mono) !important; /* ضمان تطابق الخط لمنع انزياح المؤشر */
+  box-sizing: border-box !important;
+  margin: 0 !important;
 }
 
-.w-md-editor-text-input,
-.w-md-editor-text-pre {
-  direction: inherit !important;
-  text-align: inherit !important;
-}
-
-.w-md-editor-text-pre > code {
-  direction: inherit !important;
-  text-align: inherit !important;
-  /* Prevent code blocks inside the editor from overriding */
-}
-
-/* Toolbar stays LTR */
-.w-md-editor-toolbar {
-  direction: ltr !important;
-}
-
-/* ===== Preview (live & published) ===== */
-/* Auto‑detect paragraph direction: Arabic → RTL, English → LTR */
-.w-md-editor-preview,
-.prose-md {
-  direction: auto !important;
+.editor-rtl .w-md-editor-preview,
+.editor-rtl .wmde-markdown,
+.editor-rtl .prose-md {
+  direction: rtl !important;
+  text-align: right !important;
   unicode-bidi: plaintext !important;
 }
 
-/* ===== Code blocks & inline code: ALWAYS LTR ===== */
-/* Inside the preview */
-.w-md-editor-preview pre,
-.w-md-editor-preview pre code,
-.prose-md pre,
-.prose-md pre code {
+/* إصلاح التباعد (Padding) للقوائم في الوضع العربي */
+.editor-rtl .wmde-markdown ul,
+.editor-rtl .wmde-markdown ol,
+.editor-rtl .prose-md ul,
+.editor-rtl .prose-md ol {
+  padding-right: 2em !important;
+  padding-left: 0 !important;
+}
+
+/* --- B. وضع اللغة الإنجليزية (LTR Mode) --- */
+.editor-ltr .w-md-editor-text-input,
+.editor-ltr .w-md-editor-text-pre {
   direction: ltr !important;
-  unicode-bidi: isolate !important;
+  text-align: left !important;
+  unicode-bidi: plaintext !important;
+}
+
+.editor-ltr .w-md-editor-preview,
+.editor-ltr .wmde-markdown,
+.editor-ltr .prose-md {
+  direction: ltr !important;
   text-align: left !important;
 }
 
-.w-md-editor-preview :not(pre) > code,
-.prose-md :not(pre) > code {
-  direction: ltr !important;
-  unicode-bidi: isolate !important;
-  text-align: left !important;
-}
-
-/* Also handle any code-block wrapper (your custom CodeBlock component) */
-.prose-md .group.relative,
-.w-md-editor-preview .group.relative {
-  direction: ltr !important;
-  unicode-bidi: isolate !important;
+.editor-ltr .wmde-markdown ul,
+.editor-ltr .wmde-markdown ol,
+.editor-ltr .prose-md ul,
+.editor-ltr .prose-md ol {
+  padding-left: 2em !important;
+  padding-right: 0 !important;
 }
 
 /* ================================================================
-   FULL RTL SUPPORT – @uiw/react-md-editor + markdown preview
+   4. STRICT LTR FOR CODE BLOCKS (ALWAYS LTR)
    ================================================================ */
+/* حماية الأكواد البرمجية لتبقى دائماً من اليسار لليمين سواء كان المحرر عربي أو إنجليزي */
 
-/* ---------- Editor text input ---------- */
-.w-md-editor-text {
-  direction: rtl !important;
-}
-
-.w-md-editor-text-input,
-.w-md-editor-text-pre {
-  direction: rtl !important;
-  text-align: right !important;
-  unicode-bidi: plaintext !important;
-}
-
-/* Ensure the textarea and the overlaid highlighted pre stay aligned */
-.w-md-editor-text-pre > code {
-  direction: rtl !important;
-  text-align: right !important;
-  unicode-bidi: plaintext !important;
-}
-
-/* ---------- Toolbar stays LTR ---------- */
-.w-md-editor-toolbar {
-  direction: ltr !important;
-}
-
-/* ---------- Preview pane (live & static) ---------- */
-.w-md-editor-preview,
-.wmde-markdown {
-  direction: rtl !important;
-  text-align: right !important;
-  unicode-bidi: plaintext !important;
-}
-
-/* ---------- Protect code blocks (ALWAYS LTR) ---------- */
 .wmde-markdown pre,
 .wmde-markdown pre code,
 .w-md-editor-preview pre,
 .w-md-editor-preview pre code,
-.w-md-editor-text-pre .token {
-  direction: ltr !important;
-  text-align: left !important;
-  unicode-bidi: normal !important; /* or isolate – normal is sufficient for monospace */
-}
-
-/* Inline code inside preview: stay LTR */
-.wmde-markdown :not(pre) > code,
-.w-md-editor-preview :not(pre) > code {
+.w-md-editor-text-pre .token,
+.prose-md pre,
+.prose-md pre code,
+.prose-md .group.relative {
   direction: ltr !important;
   text-align: left !important;
   unicode-bidi: isolate !important;
 }
 
-/* ---------- List padding fix ---------- */
-.wmde-markdown ul,
-.wmde-markdown ol {
-  padding-right: 2em !important;
-  padding-left: 0 !important;
+/* حماية الأكواد المضمنة (Inline code) */
+.wmde-markdown :not(pre) > code,
+.w-md-editor-preview :not(pre) > code,
+.prose-md :not(pre) > code {
+  direction: ltr !important;
+  unicode-bidi: isolate !important;
 }

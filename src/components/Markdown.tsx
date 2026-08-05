@@ -9,26 +9,20 @@ import { Check, Copy } from "lucide-react";
 function slugifyHeading(text: string) {
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-z0-9\u0600-\u06FF]+/g, "-") // دعم الأحرف العربية في الروابط
     .replace(/(^-|-$)/g, "");
 }
 
-/** Extract the language name from `hljs language-json` → `json` */
 function extractLanguage(className?: string): string {
   if (!className) return "";
   const match = className.match(/language-(\w+)/);
   return match ? match[1] : "";
 }
 
-/**
- * Recursively extract plain text from React children.
- * Works with strings, numbers, arrays, and valid React elements.
- */
 function getNodeText(node: React.ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
   if (Array.isArray(node)) return node.map(getNodeText).join("");
   if (React.isValidElement(node)) {
-    // children can be anything – recurse
     return getNodeText(node.props.children);
   }
   return "";
@@ -38,7 +32,7 @@ function getNodeText(node: React.ReactNode): string {
 function CodeBlock({ children, className }: { children: React.ReactNode; className?: string }) {
   const [copied, setCopied] = useState(false);
   const lang = extractLanguage(className);
-  const rawCode = getNodeText(children); // plain text for the clipboard
+  const rawCode = getNodeText(children);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(rawCode);
@@ -47,32 +41,33 @@ function CodeBlock({ children, className }: { children: React.ReactNode; classNa
   };
 
   return (
-    <div className="group relative">
+    <div className="group relative my-6 overflow-hidden rounded-lg border border-border/50 bg-[#0d1117] shadow-md">
       <div className="absolute right-2 top-2 z-10 flex items-center gap-2">
         {lang && (
-          <span className="rounded bg-muted/70 px-2 py-0.5 font-mono text-[10px] uppercase text-muted-foreground">
+          <span className="rounded bg-background/50 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground backdrop-blur-sm">
             {lang}
           </span>
         )}
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 rounded border border-border bg-muted/70 p-1.5 text-muted-foreground opacity-100 transition hover:text-primary
-                     md:opacity-0 md:group-hover:opacity-100"
+          className="flex items-center gap-1.5 rounded-md border border-transparent bg-background/50 px-2 py-1 text-muted-foreground backdrop-blur-sm transition-all hover:border-primary/50 hover:text-primary md:opacity-0 md:group-hover:opacity-100"
           aria-label="Copy code"
         >
           {copied ? (
             <>
-              <Check className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-medium">Copied!</span>
+              <Check className="h-3.5 w-3.5 text-green-400" />
+              <span className="text-[10px] font-bold text-green-400">Copied</span>
             </>
           ) : (
             <Copy className="h-3.5 w-3.5" />
           )}
         </button>
       </div>
-      {/* Only <pre> – no extra <code> tag! */}
-      <pre>{children}</pre>
+      {/* إجبار الكود البرمجي على اليسار دائماً */}
+      <pre className="overflow-x-auto p-4 text-left font-mono text-sm leading-relaxed" dir="ltr">
+        {children}
+      </pre>
     </div>
   );
 }
@@ -80,16 +75,19 @@ function CodeBlock({ children, className }: { children: React.ReactNode; classNa
 // ---------- Markdown component ----------
 export function Markdown({ content }: { content: string }) {
   return (
-    <div className="prose-md" data-color-mode="dark" dir="auto">
+    <div className="prose-md max-w-none" data-color-mode="dark" dir="auto">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[[rehypeHighlight, { detect: true, ignoreMissing: true }]]}
         components={{
-          // Headings with auto‑IDs for the Table of Contents
           h2: ({ children, ...props }) => {
             const id = slugifyHeading(getNodeText(children));
             return (
-              <h2 id={id} {...props}>
+              <h2
+                id={id}
+                className="scroll-mt-24 text-2xl font-bold text-foreground mt-8 mb-4"
+                {...props}
+              >
                 {children}
               </h2>
             );
@@ -97,29 +95,28 @@ export function Markdown({ content }: { content: string }) {
           h3: ({ children, ...props }) => {
             const id = slugifyHeading(getNodeText(children));
             return (
-              <h3 id={id} {...props}>
+              <h3
+                id={id}
+                className="scroll-mt-24 text-xl font-semibold text-foreground/90 mt-6 mb-3"
+                {...props}
+              >
                 {children}
               </h3>
             );
           },
-
-          // Code blocks – avoid double <code> wrapper
           pre({ children }) {
-            // react‑markdown renders <pre><code>…</code></pre>
-            // We only want the highlighted tokens (children of <code>)
             const codeElement = Array.isArray(children) ? children[0] : children;
             if (!React.isValidElement(codeElement)) {
-              // fallback: just render as is
-              return <pre>{children}</pre>;
+              return (
+                <pre dir="ltr" className="text-left">
+                  {children}
+                </pre>
+              );
             }
-
             const highlightedChildren = codeElement.props.children;
             const codeClassName = codeElement.props.className ?? "";
-
             return <CodeBlock className={codeClassName}>{highlightedChildren}</CodeBlock>;
           },
-
-          // External links
           a({ href, children }) {
             const external = href?.startsWith("http");
             return (
@@ -127,6 +124,7 @@ export function Markdown({ content }: { content: string }) {
                 href={href}
                 target={external ? "_blank" : undefined}
                 rel={external ? "noreferrer" : undefined}
+                className="text-primary hover:underline underline-offset-4 decoration-primary/50 transition-colors"
               >
                 {children}
               </a>
