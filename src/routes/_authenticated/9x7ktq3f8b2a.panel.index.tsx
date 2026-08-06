@@ -29,7 +29,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { NavBar } from "@/components/NavBar";
 import { formatAmman } from "@/lib/timezone";
-import { Plus, Pencil, Trash2, LogOut, ShieldAlert, GripVertical, Pin, PinOff } from "lucide-react";
+import { Plus, Pencil, Trash2, LogOut, ShieldAlert, GripVertical, Pin, PinOff, BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/9x7ktq3f8b2a/panel/")({
   head: () => ({
@@ -302,9 +302,10 @@ function AdminDashboard() {
             </Link>
             <Link
               to="/9x7ktq3f8b2a/panel/analytics"
-              className="inline-flex items-center gap-2 rounded-md border border-neon/50 bg-neon/10 px-4 py-2 font-mono text-sm text-neon hover:bg-neon/20"
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 border border-gray-800 text-gray-300 rounded hover:text-emerald-400 hover:border-gray-700 text-xs transition font-mono"
             >
-              <ShieldAlert className="h-4 w-4" /> Analytics
+              <BarChart3 className="h-4 w-4 text-emerald-400" />
+              Analytics
             </Link>
             <button
               onClick={signOut}

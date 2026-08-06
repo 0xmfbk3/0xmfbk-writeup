@@ -1,6 +1,5 @@
 // src/routes/__root.tsx
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TelemetryTracker } from "@/components/TelemetryTracker";
 import {
   Outlet,
   Link,
@@ -15,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "sonner";
+import { VisitorTracker } from "@/components/VisitorTracker";
 
 function NotFoundComponent() {
   return (
@@ -150,7 +150,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TelemetryTracker />
+      <VisitorTracker />
       <Outlet />
       <Toaster theme="dark" position="top-right" richColors />
     </QueryClientProvider>
