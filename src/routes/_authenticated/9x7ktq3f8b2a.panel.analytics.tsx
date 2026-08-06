@@ -1,8 +1,9 @@
+// src/routes/_authenticated/9x7ktq3f8b2a.panel.analytics.tsx
 import { createFileRoute } from "@tanstack/react-router";
 import { NavBar } from "@/components/NavBar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, Trash2, RefreshCw, Globe, Shield } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/9x7ktq3f8b2a/panel/analytics")({
@@ -53,6 +54,20 @@ function SimpleVisitorsPanel() {
       setSelectedIds([]);
     },
   });
+
+  // 3️⃣ Realtime: auto‑refresh on new insert
+  useEffect(() => {
+    const channel = supabase
+      .channel("visitors_log_changes")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "visitors_log" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["visitors_log"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // تحديد الكل أو إلغاء التحديد
   const toggleSelectAll = () => {
