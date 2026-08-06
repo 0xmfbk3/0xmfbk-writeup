@@ -10,6 +10,9 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Remove all HTML tags – simple but effective for plain text
 const sanitize = (input: string) => input.replace(/<[^>]*>/g, "").trim();
 
+// Only Arabic and English letters + spaces
+const NAME_REGEX = /^[a-zA-Z\u0600-\u06FF\s]+$/;
+
 // Relative timestamp (e.g., "2 hours ago")
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -75,16 +78,17 @@ export function CommentsSection({ postSlug }: Props) {
 
     // 1. Honeypot: if the hidden field is filled, reject silently
     if (honeypot.trim().length > 0) {
-      // Simulate success to not alert bots
       setName("");
       setContent("");
       setHoneypot("");
       return;
     }
 
-    // 2. Client-side length checks (in addition to DB constraints)
+    // 2. Sanitize inputs
     const sanitizedName = sanitize(name);
     const sanitizedContent = sanitize(content);
+
+    // 3. Length checks
     if (sanitizedName.length < 2 || sanitizedName.length > 50) {
       setError("Name must be between 2 and 50 characters.");
       return;
@@ -94,7 +98,17 @@ export function CommentsSection({ postSlug }: Props) {
       return;
     }
 
-    // 3. Cooldown (30 seconds)
+    // 4. Strict character validation – Arabic & English letters only
+    if (!NAME_REGEX.test(sanitizedName)) {
+      setError("Name can only contain Arabic or English letters.");
+      return;
+    }
+    if (!NAME_REGEX.test(sanitizedContent)) {
+      setError("Comment can only contain Arabic or English letters.");
+      return;
+    }
+
+    // 5. Cooldown (30 seconds)
     if (cooldown) {
       setError("Please wait 30 seconds before posting another comment.");
       return;
@@ -102,7 +116,7 @@ export function CommentsSection({ postSlug }: Props) {
 
     setSubmitting(true);
 
-    // 4. Insert into Supabase
+    // 6. Insert into Supabase
     const { error: insertError } = await supabase.from("comments").insert({
       post_slug: postSlug,
       author_name: sanitizedName,
@@ -182,7 +196,9 @@ export function CommentsSection({ postSlug }: Props) {
           />
           <div className="flex justify-end mt-1">
             <span
-              className={`font-mono text-xs ${charCount > 950 ? "text-danger" : "text-muted-foreground"}`}
+              className={`font-mono text-xs ${
+                charCount > 950 ? "text-danger" : "text-muted-foreground"
+              }`}
             >
               {charCount} / 1000
             </span>
@@ -219,7 +235,6 @@ export function CommentsSection({ postSlug }: Props) {
                   {timeAgo(c.created_at)}
                 </span>
               </div>
-              {/* Render safely as text – React escapes automatically */}
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{c.content}</p>
             </li>
           ))}
