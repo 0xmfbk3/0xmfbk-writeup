@@ -1,6 +1,5 @@
-// src/lib/visitor-info.js
+// netlify/functions/visitor-info.js
 exports.handler = async (event) => {
-  // قراءة IP الحقيقي من رؤوس Netlify
   const ip =
     event.headers["x-nf-client-connection-ip"] ||
     event.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
@@ -15,9 +14,7 @@ exports.handler = async (event) => {
     const data = await res.json();
     city = data.city || city;
     country = data.country_name || country;
-  } catch {
-    // تبقى القيم الافتراضية
-  }
+  } catch {}
 
   return {
     statusCode: 200,
