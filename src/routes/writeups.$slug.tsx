@@ -9,6 +9,7 @@ import { TableOfContents } from "@/components/TableOfContents";
 import { BackToTop } from "@/components/BackToTop";
 import { readingTime } from "@/lib/readingTime";
 import { getPublishedPostBySlug } from "@/lib/posts.functions";
+import { CommentsSection } from "@/components/CommentsSection";
 
 export const Route = createFileRoute("/writeups/$slug")({
   loader: ({ params }) => getPublishedPostBySlug({ data: { slug: params.slug } }),
@@ -92,6 +93,7 @@ function WriteupPage() {
             </div>
           </aside>
         </div>
+        <CommentsSection postSlug={post.slug} />
       </article>
     </>
   );
