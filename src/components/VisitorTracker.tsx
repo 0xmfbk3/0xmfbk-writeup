@@ -7,15 +7,15 @@ export function VisitorTracker() {
     async function trackVisitor() {
       const sessionKey = "visited_logged_session";
 
-      if (sessionStorage.getItem(sessionKey)) {
-        console.log("⏩ تم تسجيل الزيارة مسبقاً");
-        return;
-      }
-
-      console.log("🟢 بدء تتبع الزائر...");
+      // منع تكرار التسجيل خلال جلسة المتصفح
+      if (sessionStorage.getItem(sessionKey)) return;
 
       try {
-        // تحليل User-Agent (يعمل دائماً بدون CORS)
+        // 1️⃣ جلب بيانات IP والموقع من Edge Function (خاصة بـ Netlify)
+        const res = await fetch("/api/visitor-info");
+        const geo = await res.json();
+
+        // 2️⃣ تحليل المتصفح والجهاز محلياً
         const ua = navigator.userAgent;
         let browser = "Other";
         if (ua.includes("Firefox")) browser = "Firefox";
@@ -34,23 +34,29 @@ export function VisitorTracker() {
               ? "Linux"
               : "Other OS";
 
+        // تنسيق الموقع
+        const location =
+          geo.city !== "غير متاح"
+            ? `${geo.city}, ${geo.country}`
+            : geo.country !== "غير متاح"
+              ? geo.country
+              : "غير متاح";
+
+        // 3️⃣ حفظ السجل في Supabase
         const visitorRecord = {
-          ip_address: "محجوب (CORS)", // مؤقتاً – سيتم ملؤه عند النشر من الخادم
-          location: "غير متاح محلياً", // نفس السبب
+          ip_address: geo.ip,
+          location: location,
           device_info: `${device} (${os})`,
           browser: browser,
         };
 
         const { error } = await supabase.from("visitors_log").insert([visitorRecord]);
 
-        if (error) {
-          console.error("❌ فشل إدخال السجل:", error);
-        } else {
-          console.log("✅ تم تسجيل الزائر (بدون IP بسبب CORS)");
+        if (!error) {
           sessionStorage.setItem(sessionKey, "true");
         }
       } catch (err) {
-        console.error("❌ خطأ:", err);
+        console.error("تعذر تتبع الزائر:", err);
       }
     }
 
