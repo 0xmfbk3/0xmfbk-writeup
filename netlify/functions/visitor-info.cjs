@@ -1,4 +1,4 @@
-// netlify/functions/visitor-info.js
+// netlify/functions/visitor-info.cjs
 exports.handler = async (event) => {
   const ip =
     event.headers["x-nf-client-connection-ip"] ||
