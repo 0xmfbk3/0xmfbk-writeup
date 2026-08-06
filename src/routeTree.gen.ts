@@ -19,7 +19,6 @@ import { Route as R9x7ktq3f8b2aGateRouteImport } from './routes/9x7ktq3f8b2a.gat
 import { Route as Authenticated9x7ktq3f8b2aPanelRouteImport } from './routes/_authenticated/9x7ktq3f8b2a.panel'
 import { Route as Authenticated9x7ktq3f8b2aPanelIndexRouteImport } from './routes/_authenticated/9x7ktq3f8b2a.panel.index'
 import { Route as Authenticated9x7ktq3f8b2aPanelNewRouteImport } from './routes/_authenticated/9x7ktq3f8b2a.panel.new'
-import { Route as Authenticated9x7ktq3f8b2aPanelAnalyticsRouteImport } from './routes/_authenticated/9x7ktq3f8b2a.panel.analytics'
 import { Route as Authenticated9x7ktq3f8b2aPanelIdEditRouteImport } from './routes/_authenticated/9x7ktq3f8b2a.panel.$id.edit'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -74,12 +73,6 @@ const Authenticated9x7ktq3f8b2aPanelNewRoute =
     path: '/new',
     getParentRoute: () => Authenticated9x7ktq3f8b2aPanelRoute,
   } as any)
-const Authenticated9x7ktq3f8b2aPanelAnalyticsRoute =
-  Authenticated9x7ktq3f8b2aPanelAnalyticsRouteImport.update({
-    id: '/analytics',
-    path: '/analytics',
-    getParentRoute: () => Authenticated9x7ktq3f8b2aPanelRoute,
-  } as any)
 const Authenticated9x7ktq3f8b2aPanelIdEditRoute =
   Authenticated9x7ktq3f8b2aPanelIdEditRouteImport.update({
     id: '/$id/edit',
@@ -95,7 +88,6 @@ export interface FileRoutesByFullPath {
   '/writeups/$slug': typeof WriteupsSlugRoute
   '/writeups/': typeof WriteupsIndexRoute
   '/9x7ktq3f8b2a/panel': typeof Authenticated9x7ktq3f8b2aPanelRouteWithChildren
-  '/9x7ktq3f8b2a/panel/analytics': typeof Authenticated9x7ktq3f8b2aPanelAnalyticsRoute
   '/9x7ktq3f8b2a/panel/new': typeof Authenticated9x7ktq3f8b2aPanelNewRoute
   '/9x7ktq3f8b2a/panel/': typeof Authenticated9x7ktq3f8b2aPanelIndexRoute
   '/9x7ktq3f8b2a/panel/$id/edit': typeof Authenticated9x7ktq3f8b2aPanelIdEditRoute
@@ -107,7 +99,6 @@ export interface FileRoutesByTo {
   '/9x7ktq3f8b2a/gate': typeof R9x7ktq3f8b2aGateRoute
   '/writeups/$slug': typeof WriteupsSlugRoute
   '/writeups': typeof WriteupsIndexRoute
-  '/9x7ktq3f8b2a/panel/analytics': typeof Authenticated9x7ktq3f8b2aPanelAnalyticsRoute
   '/9x7ktq3f8b2a/panel/new': typeof Authenticated9x7ktq3f8b2aPanelNewRoute
   '/9x7ktq3f8b2a/panel': typeof Authenticated9x7ktq3f8b2aPanelIndexRoute
   '/9x7ktq3f8b2a/panel/$id/edit': typeof Authenticated9x7ktq3f8b2aPanelIdEditRoute
@@ -122,7 +113,6 @@ export interface FileRoutesById {
   '/writeups/$slug': typeof WriteupsSlugRoute
   '/writeups/': typeof WriteupsIndexRoute
   '/_authenticated/9x7ktq3f8b2a/panel': typeof Authenticated9x7ktq3f8b2aPanelRouteWithChildren
-  '/_authenticated/9x7ktq3f8b2a/panel/analytics': typeof Authenticated9x7ktq3f8b2aPanelAnalyticsRoute
   '/_authenticated/9x7ktq3f8b2a/panel/new': typeof Authenticated9x7ktq3f8b2aPanelNewRoute
   '/_authenticated/9x7ktq3f8b2a/panel/': typeof Authenticated9x7ktq3f8b2aPanelIndexRoute
   '/_authenticated/9x7ktq3f8b2a/panel/$id/edit': typeof Authenticated9x7ktq3f8b2aPanelIdEditRoute
@@ -137,7 +127,6 @@ export interface FileRouteTypes {
     | '/writeups/$slug'
     | '/writeups/'
     | '/9x7ktq3f8b2a/panel'
-    | '/9x7ktq3f8b2a/panel/analytics'
     | '/9x7ktq3f8b2a/panel/new'
     | '/9x7ktq3f8b2a/panel/'
     | '/9x7ktq3f8b2a/panel/$id/edit'
@@ -149,7 +138,6 @@ export interface FileRouteTypes {
     | '/9x7ktq3f8b2a/gate'
     | '/writeups/$slug'
     | '/writeups'
-    | '/9x7ktq3f8b2a/panel/analytics'
     | '/9x7ktq3f8b2a/panel/new'
     | '/9x7ktq3f8b2a/panel'
     | '/9x7ktq3f8b2a/panel/$id/edit'
@@ -163,7 +151,6 @@ export interface FileRouteTypes {
     | '/writeups/$slug'
     | '/writeups/'
     | '/_authenticated/9x7ktq3f8b2a/panel'
-    | '/_authenticated/9x7ktq3f8b2a/panel/analytics'
     | '/_authenticated/9x7ktq3f8b2a/panel/new'
     | '/_authenticated/9x7ktq3f8b2a/panel/'
     | '/_authenticated/9x7ktq3f8b2a/panel/$id/edit'
@@ -251,13 +238,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Authenticated9x7ktq3f8b2aPanelNewRouteImport
       parentRoute: typeof Authenticated9x7ktq3f8b2aPanelRoute
     }
-    '/_authenticated/9x7ktq3f8b2a/panel/analytics': {
-      id: '/_authenticated/9x7ktq3f8b2a/panel/analytics'
-      path: '/analytics'
-      fullPath: '/9x7ktq3f8b2a/panel/analytics'
-      preLoaderRoute: typeof Authenticated9x7ktq3f8b2aPanelAnalyticsRouteImport
-      parentRoute: typeof Authenticated9x7ktq3f8b2aPanelRoute
-    }
     '/_authenticated/9x7ktq3f8b2a/panel/$id/edit': {
       id: '/_authenticated/9x7ktq3f8b2a/panel/$id/edit'
       path: '/$id/edit'
@@ -269,7 +249,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface Authenticated9x7ktq3f8b2aPanelRouteChildren {
-  Authenticated9x7ktq3f8b2aPanelAnalyticsRoute: typeof Authenticated9x7ktq3f8b2aPanelAnalyticsRoute
   Authenticated9x7ktq3f8b2aPanelNewRoute: typeof Authenticated9x7ktq3f8b2aPanelNewRoute
   Authenticated9x7ktq3f8b2aPanelIndexRoute: typeof Authenticated9x7ktq3f8b2aPanelIndexRoute
   Authenticated9x7ktq3f8b2aPanelIdEditRoute: typeof Authenticated9x7ktq3f8b2aPanelIdEditRoute
@@ -277,8 +256,6 @@ interface Authenticated9x7ktq3f8b2aPanelRouteChildren {
 
 const Authenticated9x7ktq3f8b2aPanelRouteChildren: Authenticated9x7ktq3f8b2aPanelRouteChildren =
   {
-    Authenticated9x7ktq3f8b2aPanelAnalyticsRoute:
-      Authenticated9x7ktq3f8b2aPanelAnalyticsRoute,
     Authenticated9x7ktq3f8b2aPanelNewRoute:
       Authenticated9x7ktq3f8b2aPanelNewRoute,
     Authenticated9x7ktq3f8b2aPanelIndexRoute:

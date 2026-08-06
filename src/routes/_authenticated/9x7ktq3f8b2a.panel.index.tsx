@@ -300,13 +300,6 @@ function AdminDashboard() {
             >
               <Plus className="h-4 w-4" /> new writeup
             </Link>
-            <Link
-              to="/9x7ktq3f8b2a/panel/analytics"
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 border border-gray-800 text-gray-300 rounded hover:text-emerald-400 hover:border-gray-700 text-xs transition font-mono"
-            >
-              <BarChart3 className="h-4 w-4 text-emerald-400" />
-              Analytics
-            </Link>
             <button
               onClick={signOut}
               className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 font-mono text-xs text-muted-foreground hover:text-danger"

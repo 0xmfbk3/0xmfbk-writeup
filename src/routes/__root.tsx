@@ -14,7 +14,6 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "sonner";
-import { VisitorTracker } from "@/components/VisitorTracker";
 
 function NotFoundComponent() {
   return (
@@ -150,7 +149,6 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <VisitorTracker />
       <Outlet />
       <Toaster theme="dark" position="top-right" richColors />
     </QueryClientProvider>
