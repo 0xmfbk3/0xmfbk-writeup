@@ -1,25 +1,21 @@
+// src/components/VisitorTracker.tsx
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function VisitorTracker() {
   useEffect(() => {
     async function trackVisitor() {
+      const sessionKey = "visited_logged_session";
+
+      if (sessionStorage.getItem(sessionKey)) {
+        console.log("⏩ تم تسجيل الزيارة مسبقاً");
+        return;
+      }
+
+      console.log("🟢 بدء تتبع الزائر...");
+
       try {
-        // منع التكرار خلال جلسة المتصفح الواحدة لمنع تضخم السجلات
-        const sessionKey = "visited_logged_session";
-        if (sessionStorage.getItem(sessionKey)) return;
-
-        // جلب الـ IP والموقع الجغرافي مجاناً
-        const res = await fetch("https://ipapi.co/json/");
-        const data = await res.json();
-
-        const ip = data.ip || "Unknown IP";
-        const location =
-          data.city && data.country_name
-            ? `${data.city}, ${data.country_name}`
-            : data.country_name || "Unknown Location";
-
-        // تحليل بسيط لجهاز الزائر والمتصفح
+        // تحليل User-Agent (يعمل دائماً بدون CORS)
         const ua = navigator.userAgent;
         let browser = "Other";
         if (ua.includes("Firefox")) browser = "Firefox";
@@ -38,19 +34,23 @@ export function VisitorTracker() {
               ? "Linux"
               : "Other OS";
 
-        // حفظ البيانات في Supabase
-        await supabase.from("visitors_log").insert([
-          {
-            ip_address: ip,
-            location: location,
-            device_info: `${device} (${os})`,
-            browser: browser,
-          },
-        ]);
+        const visitorRecord = {
+          ip_address: "محجوب (CORS)", // مؤقتاً – سيتم ملؤه عند النشر من الخادم
+          location: "غير متاح محلياً", // نفس السبب
+          device_info: `${device} (${os})`,
+          browser: browser,
+        };
 
-        sessionStorage.setItem(sessionKey, "true");
+        const { error } = await supabase.from("visitors_log").insert([visitorRecord]);
+
+        if (error) {
+          console.error("❌ فشل إدخال السجل:", error);
+        } else {
+          console.log("✅ تم تسجيل الزائر (بدون IP بسبب CORS)");
+          sessionStorage.setItem(sessionKey, "true");
+        }
       } catch (err) {
-        console.error("Tracking error:", err);
+        console.error("❌ خطأ:", err);
       }
     }
 
