@@ -1,78 +1,58 @@
 // src/components/TelemetryTracker.tsx
-import { useEffect } from "react";
-import { useRouter } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import { useLocation } from "@tanstack/react-router";
 import { ingestTelemetry } from "@/lib/analytics.functions";
 
+const THREAT_PATTERNS = [
+  {
+    type: "SQL Injection",
+    regex: /(\bUNION\b\s+\bSELECT\b|\bOR\b\s+1\s*=\s*1|\bSLEEP\b\s*\(|;.*\bDROP\b)/i,
+    severity: "HIGH" as const,
+    score: 60,
+  },
+  { type: "Path Traversal", regex: /\.\.\//, severity: "HIGH" as const, score: 50 },
+  {
+    type: "XSS",
+    regex: /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i,
+    severity: "HIGH" as const,
+    score: 70,
+  },
+  { type: "Suspicious Protocol", regex: /javascript:/i, severity: "MEDIUM" as const, score: 40 },
+  { type: "System File Access", regex: /\/etc\/passwd/i, severity: "CRITICAL" as const, score: 90 },
+];
+
 export function TelemetryTracker() {
-  const router = useRouter();
+  const location = useLocation();
+  const lastPath = useRef<string | null>(null);
 
   useEffect(() => {
-    // Send telemetry on initial load and on route changes
-    const sendTelemetry = async () => {
-      // Perform client-side threat scanning (patterns on URL)
-      const url = window.location.pathname + window.location.search;
-      const threats: Array<{
-        type: string;
-        severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-        score: number;
-        pattern: string;
-      }> = [];
-      const patterns = [
-        {
-          type: "SQL Injection",
-          regex: /(\bUNION\b\s+\bSELECT\b|\bOR\b\s+1\s*=\s*1|\bSLEEP\b\s*\(|;.*\bDROP\b)/i,
-          severity: "HIGH" as const,
-          score: 60,
-        },
-        { type: "Path Traversal", regex: /\.\.\//, severity: "HIGH" as const, score: 50 },
-        {
-          type: "XSS",
-          regex: /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i,
-          severity: "HIGH" as const,
-          score: 70,
-        },
-        {
-          type: "Suspicious Protocol",
-          regex: /javascript:/i,
-          severity: "MEDIUM" as const,
-          score: 40,
-        },
-        {
-          type: "System File Access",
-          regex: /\/etc\/passwd/i,
-          severity: "CRITICAL" as const,
-          score: 90,
-        },
-      ];
-      patterns.forEach((p) => {
-        if (p.regex.test(url)) {
-          threats.push({ ...p, pattern: p.regex.source });
-        }
-      });
+    // ✅ الحل هنا: استخدام location.href بدلاً من دمج pathname مع search
+    const currentPath = location.href;
 
-      try {
-        await ingestTelemetry({
-          data: {
-            path: window.location.pathname,
-            referrer: document.referrer,
-            userAgent: navigator.userAgent,
-            ip: "", // The server function can extract the real IP from request headers (context) – leave empty for now; we can trust server context.
-            country: "", // same
-            threats,
-          },
-        });
-      } catch (err) {
-        console.error("Telemetry error:", err);
-      }
-    };
+    if (lastPath.current === currentPath) return;
+    lastPath.current = currentPath;
 
-    // Send on mount and on every route change
-    sendTelemetry();
-    const unsub = router.subscribe("onLoad", () => {
-      sendTelemetry();
+    const detectedThreats = THREAT_PATTERNS.filter((pattern) =>
+      pattern.regex.test(currentPath),
+    ).map((t) => ({
+      type: t.type,
+      severity: t.severity,
+      score: t.score,
+    }));
+
+    ingestTelemetry({
+      data: {
+        path: currentPath,
+        referrer: typeof document !== "undefined" ? document.referrer : "",
+        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+        threats: detectedThreats,
+      },
+    }).catch((err) => {
+      console.error("Telemetry tracking failed:", err);
     });
-    return () => unsub();
-  }, [router]);
+  }, [location.href]); // ✅ تحديث المصفوفة هنا أيضاً
 
-  return null; // invisible
+  return null;
 }
+
+export default TelemetryTracker;

@@ -300,18 +300,18 @@ function AdminDashboard() {
             >
               <Plus className="h-4 w-4" /> new writeup
             </Link>
-            <button
-              onClick={signOut}
-              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 font-mono text-xs text-muted-foreground hover:text-danger"
-            >
-              <LogOut className="h-4 w-4" /> exit
-            </button>
             <Link
               to="/9x7ktq3f8b2a/panel/analytics"
               className="inline-flex items-center gap-2 rounded-md border border-neon/50 bg-neon/10 px-4 py-2 font-mono text-sm text-neon hover:bg-neon/20"
             >
               <ShieldAlert className="h-4 w-4" /> Analytics
             </Link>
+            <button
+              onClick={signOut}
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 font-mono text-xs text-muted-foreground hover:text-danger"
+            >
+              <LogOut className="h-4 w-4" /> exit
+            </button>
           </div>
         </div>
 
