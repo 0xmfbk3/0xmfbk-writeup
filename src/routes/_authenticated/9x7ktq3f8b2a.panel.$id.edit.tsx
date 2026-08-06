@@ -6,7 +6,7 @@ import { PostEditor, toPostForm } from "@/components/PostEditor";
 import { adminGetPost } from "@/lib/posts.functions";
 
 export const Route = createFileRoute("/_authenticated/9x7ktq3f8b2a/panel/$id/edit")({
-  head: () => ({ meta: [{ title: "Edit — 0xmfbk admin" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Edit - 0xmfbk admin" }, { name: "robots", content: "noindex" }] }),
   component: EditPost,
 });
 

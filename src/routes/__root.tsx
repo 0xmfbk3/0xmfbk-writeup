@@ -1,4 +1,6 @@
+// src/routes/__root.tsx
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TelemetryTracker } from "@/components/TelemetryTracker";
 import {
   Outlet,
   Link,
@@ -148,6 +150,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <TelemetryTracker />
       <Outlet />
       <Toaster theme="dark" position="top-right" richColors />
     </QueryClientProvider>

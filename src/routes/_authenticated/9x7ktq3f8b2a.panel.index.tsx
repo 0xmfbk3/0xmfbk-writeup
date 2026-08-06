@@ -4,26 +4,37 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
-  DndContext, PointerSensor, KeyboardSensor, closestCenter,
-  useSensor, useSensors, type DragEndEvent,
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  SortableContext, arrayMove, sortableKeyboardCoordinates,
-  useSortable, verticalListSortingStrategy,
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  adminListAllPosts, adminDeletePost, adminReorderPosts, checkIsAdmin,
+  adminListAllPosts,
+  adminDeletePost,
+  adminReorderPosts,
+  checkIsAdmin,
 } from "@/lib/posts.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { NavBar } from "@/components/NavBar";
 import { formatAmman } from "@/lib/timezone";
-import {
-  Plus, Pencil, Trash2, LogOut, ShieldAlert, GripVertical, Pin, PinOff,
-} from "lucide-react";
+import { Plus, Pencil, Trash2, LogOut, ShieldAlert, GripVertical, Pin, PinOff } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/9x7ktq3f8b2a/panel/")({
-  head: () => ({ meta: [{ title: "Dashboard - 0xmfbk admin" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Dashboard - 0xmfbk admin" }, { name: "robots", content: "noindex" }],
+  }),
   component: AdminDashboard,
 });
 
@@ -55,15 +66,20 @@ function statusBadge(s: Row["status"]) {
 }
 
 function SortableRow({
-  post, onDelete, onTogglePin, disabled,
+  post,
+  onDelete,
+  onTogglePin,
+  disabled,
 }: {
   post: Row;
   onDelete: (p: Row) => void;
   onTogglePin: (p: Row) => void;
   disabled: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: post.id, disabled });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: post.id,
+    disabled,
+  });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -98,7 +114,13 @@ function SortableRow({
         <div className="mt-0.5 font-mono text-xs text-muted-foreground">
           /{post.slug}
           {post.status === "scheduled" && post.scheduled_for && (
-            <> · <span className="text-accent">releases {formatAmman(post.scheduled_for, "yyyy-MM-dd HH:mm")}</span></>
+            <>
+              {" "}
+              ·{" "}
+              <span className="text-accent">
+                releases {formatAmman(post.scheduled_for, "yyyy-MM-dd HH:mm")}
+              </span>
+            </>
           )}
           {post.status === "published" && post.published_at && (
             <> · published {formatAmman(post.published_at, "yyyy-MM-dd")}</>
@@ -143,7 +165,6 @@ function AdminDashboard() {
   const delFn = useServerFn(adminDeletePost);
   const meFn = useServerFn(checkIsAdmin);
   const reorderFn = useServerFn(adminReorderPosts);
-  
 
   const meQ = useQuery({ queryKey: ["me"], queryFn: () => meFn({}) });
   const postsQ = useQuery({
@@ -208,9 +229,8 @@ function AdminDashboard() {
       const newIndex = list.findIndex((r) => r.id === over.id);
       if (oldIndex < 0 || newIndex < 0) return;
       const nextGroup = arrayMove(list, oldIndex, newIndex);
-      const nextAll = group === "pinned"
-        ? [...nextGroup, ...standardRows]
-        : [...pinnedRows, ...nextGroup];
+      const nextAll =
+        group === "pinned" ? [...nextGroup, ...standardRows] : [...pinnedRows, ...nextGroup];
       commitOrder(nextAll);
     };
   }
@@ -237,7 +257,9 @@ function AdminDashboard() {
   }
 
   if (meQ.isLoading) {
-    return <div className="p-10 text-center font-mono text-muted-foreground">verifying credentials…</div>;
+    return (
+      <div className="p-10 text-center font-mono text-muted-foreground">verifying credentials…</div>
+    );
   }
 
   if (meQ.data && !meQ.data.isAdmin) {
@@ -284,6 +306,12 @@ function AdminDashboard() {
             >
               <LogOut className="h-4 w-4" /> exit
             </button>
+            <Link
+              to="/9x7ktq3f8b2a/panel/analytics"
+              className="inline-flex items-center gap-2 rounded-md border border-neon/50 bg-neon/10 px-4 py-2 font-mono text-sm text-neon hover:bg-neon/20"
+            >
+              <ShieldAlert className="h-4 w-4" /> Analytics
+            </Link>
           </div>
         </div>
 
@@ -305,8 +333,15 @@ function AdminDashboard() {
                     // nothing pinned
                   </div>
                 ) : (
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd("pinned")}>
-                    <SortableContext items={pinnedRows.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd("pinned")}
+                  >
+                    <SortableContext
+                      items={pinnedRows.map((r) => r.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
                       {pinnedRows.map((p) => (
                         <SortableRow
                           key={p.id}
@@ -325,10 +360,19 @@ function AdminDashboard() {
             </section>
 
             <section>
-              <h2 className="mb-2 font-mono text-xs uppercase text-muted-foreground">all writeups</h2>
+              <h2 className="mb-2 font-mono text-xs uppercase text-muted-foreground">
+                all writeups
+              </h2>
               <div className="overflow-hidden rounded-xl border border-border">
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd("standard")}>
-                  <SortableContext items={standardRows.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd("standard")}
+                >
+                  <SortableContext
+                    items={standardRows.map((r) => r.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
                     {standardRows.map((p) => (
                       <SortableRow
                         key={p.id}

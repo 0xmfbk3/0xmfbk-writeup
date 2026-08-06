@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+// src/components/PostEditor.tsx
+import { useState, type ReactNode, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -6,8 +7,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { MDEditorClient } from "@/components/MDEditorClient";
 import { Markdown } from "@/components/Markdown";
 import { adminSavePost } from "@/lib/posts.functions";
-import { Save, Eye, Pin } from "lucide-react";
+import { Save, Eye, Pin, Trash2, AlertTriangle } from "lucide-react";
 import { AMMAN_TZ, ammanLocalToUtcISO, utcISOToAmmanLocalInput, formatAmman } from "@/lib/timezone";
+import { supabase } from "@/integrations/supabase/client"; // existing Supabase client
 
 export type PostStatus = "draft" | "published" | "scheduled" | "archived";
 
@@ -20,7 +22,7 @@ export type PostForm = {
   tags: string;
   cover_image_url: string;
   status: PostStatus;
-  scheduled_for_local: string; // Amman local, "YYYY-MM-DDTHH:mm"
+  scheduled_for_local: string;
   is_pinned: boolean;
   order_index: number;
 };
@@ -63,11 +65,63 @@ export function toPostForm(p: {
   };
 }
 
+// Comment type for moderation
+type Comment = {
+  id: string;
+  post_slug: string;
+  author_name: string;
+  content: string;
+  created_at: string;
+};
+
 export function PostEditor({ initial, heading }: { initial: PostForm; heading: ReactNode }) {
   const navigate = useNavigate();
   const [form, setForm] = useState<PostForm>(initial);
   const [mode, setMode] = useState<"edit" | "preview">("edit");
   const saveFn = useServerFn(adminSavePost);
+
+  // ---- Comment moderation state ----
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [purgeConfirm, setPurgeConfirm] = useState(false);
+
+  const fetchComments = async () => {
+    if (!form.slug) return;
+    setLoadingComments(true);
+    const { data, error } = await supabase
+      .from("comments")
+      .select("*")
+      .eq("post_slug", form.slug)
+      .order("created_at", { ascending: false });
+    if (!error && data) setComments(data as Comment[]);
+    setLoadingComments(false);
+  };
+
+  // Reload comments when slug changes
+  useEffect(() => {
+    fetchComments();
+  }, [form.slug]);
+
+  const handleDeleteComment = async (commentId: string) => {
+    const { error } = await supabase.from("comments").delete().eq("id", commentId);
+    if (error) {
+      toast.error("Failed to delete comment.");
+    } else {
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      toast.success("Comment deleted.");
+    }
+  };
+
+  const handlePurgeAll = async () => {
+    const { error } = await supabase.from("comments").delete().eq("post_slug", form.slug);
+    if (error) {
+      toast.error("Failed to purge comments.");
+    } else {
+      setComments([]);
+      setPurgeConfirm(false);
+      toast.success("All comments deleted.");
+    }
+  };
 
   const mut = useMutation({
     mutationFn: () => {
@@ -206,6 +260,7 @@ export function PostEditor({ initial, heading }: { initial: PostForm; heading: R
         </div>
 
         <aside className="space-y-4">
+          {/* Status & scheduling card */}
           <div className="rounded-xl border border-border bg-card/60 p-4">
             <h3 className="font-mono text-xs uppercase text-muted-foreground">status</h3>
             <select
@@ -262,6 +317,7 @@ export function PostEditor({ initial, heading }: { initial: PostForm; heading: R
             </p>
           </div>
 
+          {/* Cover image card */}
           <div className="rounded-xl border border-border bg-card/60 p-4">
             <h3 className="font-mono text-xs uppercase text-muted-foreground">cover image</h3>
             <input
@@ -276,6 +332,73 @@ export function PostEditor({ initial, heading }: { initial: PostForm; heading: R
                 alt=""
                 className="mt-3 rounded border border-border"
               />
+            )}
+          </div>
+
+          {/* ===== Comments Moderation Card ===== */}
+          <div className="rounded-xl border border-border bg-card/60 p-4">
+            <h3 className="font-mono text-xs uppercase text-muted-foreground">
+              Comments ({comments.length})
+            </h3>
+
+            {loadingComments ? (
+              <p className="mt-2 text-xs text-muted-foreground font-mono">Loading…</p>
+            ) : comments.length === 0 ? (
+              <p className="mt-2 text-xs text-muted-foreground font-mono">No comments yet.</p>
+            ) : (
+              <>
+                <ul className="mt-3 space-y-3 max-h-[300px] overflow-y-auto toc-scrollbar">
+                  {comments.map((c) => (
+                    <li key={c.id} className="border-b border-border/50 pb-2 last:border-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-xs font-semibold text-foreground">
+                          {c.author_name}
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {new Date(c.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+                        {c.content}
+                      </p>
+                      <button
+                        onClick={() => handleDeleteComment(c.id)}
+                        className="mt-1 flex items-center gap-1 text-[10px] text-danger hover:underline font-mono"
+                      >
+                        <Trash2 className="h-3 w-3" /> Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Purge all button */}
+                <div className="mt-3 border-t border-border/50 pt-3">
+                  {!purgeConfirm ? (
+                    <button
+                      onClick={() => setPurgeConfirm(true)}
+                      className="flex items-center gap-1 text-xs text-danger hover:underline font-mono"
+                    >
+                      <AlertTriangle className="h-3 w-3" /> Delete all comments
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-danger font-mono">Sure?</span>
+                      <button
+                        onClick={handlePurgeAll}
+                        className="px-2 py-0.5 text-xs rounded bg-danger/20 text-danger font-mono hover:bg-danger/30"
+                      >
+                        Purge all
+                      </button>
+                      <button
+                        onClick={() => setPurgeConfirm(false)}
+                        className="px-2 py-0.5 text-xs rounded border border-border text-muted-foreground font-mono hover:bg-muted/30"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </aside>

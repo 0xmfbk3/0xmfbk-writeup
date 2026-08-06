@@ -9,7 +9,7 @@ export const Route = createFileRoute("/writeups/")({
     meta: [
       { title: "Writeups — 0xmfbk" },
       { name: "description", content: "All security writeups, notes and research by 0xmfbk." },
-      { property: "og:title", content: "Writeups — 0xmfbk" },
+      { property: "og:title", content: "Writeups - 0xmfbk" },
       { property: "og:description", content: "All security writeups, notes and research by 0xmfbk." },
     ],
   }),
